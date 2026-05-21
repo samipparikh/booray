@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOORAY</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Menu Screen -->
+        <div id="menu-screen" class="screen active">
+            <div class="title-container">
+                <h1>BOO<span class="accent">RAY</span></h1>
+                <p class="subtitle">Trick-Taking Card Game</p>
+            </div>
+            <div class="menu-options">
+                <div class="player-select">
+                    <label>Players</label>
+                    <div class="player-count-selector">
+                        <button class="btn-count" id="btn-minus">-</button>
+                        <span id="player-count">4</span>
+                        <button class="btn-count" id="btn-plus">+</button>
+                    </div>
+                </div>
+                <div id="player-names"></div>
+                <button class="btn-primary" id="btn-start">Local Game</button>
+                <button class="btn-primary btn-online" id="btn-play-online">Play Online</button>
+                <button class="btn-secondary" id="btn-settings">Settings</button>
+                <button class="btn-secondary" id="btn-rules">How to Play</button>
+                <button class="btn-secondary btn-feedback" id="btn-feedback">Report a Bug</button>
+            </div>
+        </div>
+
+        <!-- Online Screen -->
+        <div id="online-screen" class="screen">
+            <div class="title-container">
+                <h1>BOO<span class="accent">RAY</span></h1>
+                <p class="subtitle" id="online-mode-title">Online</p>
+            </div>
+            <div class="menu-options">
+                <div id="online-name-group">
+                    <input type="text" id="online-player-name" placeholder="Your Name" />
+                </div>
+                <div id="join-code-group" style="display:none;">
+                    <input type="text" id="join-code-input" placeholder="Room Code" maxlength="5" style="text-transform:uppercase;" />
+                </div>
+                <button class="btn-primary" id="btn-confirm-create">Create Room</button>
+                <button class="btn-primary" id="btn-confirm-join" style="display:none;">Join Room</button>
+                <div class="online-status" id="online-status"></div>
+                <div class="online-or">
+                    <button class="btn-secondary" id="btn-create-room">Create a Room</button>
+                    <button class="btn-secondary" id="btn-join-room">Join a Room</button>
+                </div>
+                <div class="active-games-section">
+                    <h3 class="active-games-title">Active Games</h3>
+                    <div id="active-games-list" class="active-games-list">
+                        <p class="no-games">Looking for games...</p>
+                    </div>
+                </div>
+                <button class="btn-secondary" id="btn-back-online">Back</button>
+            </div>
+        </div>
+
+        <!-- Lobby Screen -->
+        <div id="lobby-screen" class="screen">
+            <div class="title-container">
+                <h1>BOO<span class="accent">RAY</span></h1>
+                <p class="subtitle">Room Code</p>
+            </div>
+            <div class="lobby-container">
+                <div class="room-code-display" id="lobby-room-code"></div>
+                <p class="lobby-hint">Share this code with other players</p>
+                <div class="lobby-players-list" id="lobby-players"></div>
+                <button class="btn-primary" id="btn-start-online" disabled>Start Game</button>
+                <button class="btn-secondary" id="btn-leave-room">Leave Room</button>
+            </div>
+        </div>
+
+        <!-- Online Game Screen -->
+        <div id="online-game-screen" class="screen">
+            <div class="game-header">
+                <div class="round-info" id="online-round-info">Round 1</div>
+                <div class="pot-display">Pot: <span id="online-pot-amount">0</span></div>
+            </div>
+            <div class="trump-display" id="online-trump-display">
+                <span class="trump-label">Trump:</span>
+                <span class="trump-card" id="online-trump-card"></span>
+            </div>
+            <div class="scoreboard" id="online-scoreboard"></div>
+            <div class="phase-indicator" id="online-phase-indicator">Ante</div>
+            <div class="trick-area" id="online-trick-area"></div>
+            <div class="hand-area" id="online-hand-area"></div>
+            <div class="action-buttons" id="online-action-buttons"></div>
+            <div class="status-message" id="online-status-message"></div>
+        </div>
+
+        <!-- Online Round End Screen -->
+        <div id="online-round-end-screen" class="screen">
+            <h2 id="online-round-number">Round Complete!</h2>
+            <div id="online-round-scores"></div>
+            <button class="btn-primary" id="btn-online-next-round">Next Round</button>
+            <p class="lobby-hint" id="online-wait-msg">Waiting for host...</p>
+        </div>
+
+        <!-- Online Game Over Screen -->
+        <div id="online-game-over-screen" class="screen">
+            <h2>Game Over!</h2>
+            <div id="online-final-scores"></div>
+            <button class="btn-primary" id="btn-online-play-again">Back to Menu</button>
+        </div>
+
+        <!-- Local Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <div class="round-info">Round <span id="current-round">1</span></div>
+                <div class="pot-display">Pot: <span id="pot-amount">0</span></div>
+            </div>
+            <div class="trump-display" id="trump-display">
+                <span class="trump-label">Trump:</span>
+                <span class="trump-card" id="trump-card"></span>
+            </div>
+            <div class="scoreboard" id="scoreboard"></div>
+            <div class="phase-indicator" id="phase-indicator">Ante</div>
+            <div class="trick-area" id="trick-area"></div>
+            <div class="hand-area" id="hand-area"></div>
+            <div class="action-buttons" id="action-buttons"></div>
+            <div class="status-message" id="status-message"></div>
+        </div>
+
+        <!-- Round End Screen -->
+        <div id="round-end-screen" class="screen">
+            <h2>Round Complete!</h2>
+            <div id="round-scores"></div>
+            <button class="btn-primary" id="btn-next-round">Next Round</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="screen">
+            <h2>Game Over!</h2>
+            <div id="final-scores"></div>
+            <button class="btn-primary" id="btn-play-again">Play Again</button>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settings-screen" class="screen">
+            <div class="rules-content">
+                <h2>Settings</h2>
+                <div class="settings-list">
+                    <div class="setting-row">
+                        <span class="setting-label">Starting Chips</span>
+                        <div class="player-count-selector">
+                            <button class="btn-count" id="btn-chips-minus">-</button>
+                            <span id="setting-chips">100</span>
+                            <button class="btn-count" id="btn-chips-plus">+</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Ante Amount</span>
+                        <div class="player-count-selector">
+                            <button class="btn-count" id="btn-ante-minus">-</button>
+                            <span id="setting-ante">5</span>
+                            <button class="btn-count" id="btn-ante-plus">+</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Pot Limit</span>
+                        <div class="player-count-selector">
+                            <button class="btn-count toggle-btn" id="btn-pot-limit-toggle">
+                                <span id="setting-pot-limit">OFF</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="setting-row" id="pot-limit-amount-row" style="display:none;">
+                        <span class="setting-label">Max Pot</span>
+                        <div class="player-count-selector">
+                            <button class="btn-count" id="btn-pot-max-minus">-</button>
+                            <span id="setting-pot-max">100</span>
+                            <button class="btn-count" id="btn-pot-max-plus">+</button>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-secondary" id="btn-back-settings">Back</button>
+            </div>
+        </div>
+
+        <!-- Rules Screen -->
+        <div id="rules-screen" class="screen">
+            <div class="rules-content">
+                <h2>How to Play</h2>
+                <div class="rules-text">
+                    <h3>Overview</h3>
+                    <p>Booray is a trick-taking card game where players compete to win the pot. But beware - if you take zero tricks, you get "Booray'd" and must match the pot!</p>
+
+                    <h3>Setup</h3>
+                    <ul>
+                        <li>2-6 players, standard 52-card deck</li>
+                        <li>Each round, all players ante into the pot</li>
+                        <li>Each player is dealt 5 cards</li>
+                        <li>The dealer's 5th card determines the trump suit</li>
+                    </ul>
+
+                    <h3>Declare Phase</h3>
+                    <ul>
+                        <li>Starting left of dealer, each player declares: Play or Fold</li>
+                        <li>Players who fold lose their ante but risk nothing more</li>
+                        <li>Players who play may discard 0-5 cards and draw replacements</li>
+                    </ul>
+
+                    <h3>Playing Tricks</h3>
+                    <ul>
+                        <li>5 tricks are played per round</li>
+                        <li>You MUST follow suit if possible</li>
+                        <li>If void in led suit, you MUST play trump if possible</li>
+                        <li>When trumping, you must try to beat the highest trump played</li>
+                        <li>If void in both led suit and trump, play any card</li>
+                        <li>Highest card of led suit wins (unless trumped)</li>
+                    </ul>
+
+                    <h3>Card Ranking</h3>
+                    <p>A (high) K Q J 10 9 8 7 6 5 4 3 2 (low). Trump suit beats all non-trump cards.</p>
+
+                    <h3>Winning</h3>
+                    <ul>
+                        <li>Player with the most tricks wins the entire pot</li>
+                        <li>TIE: If players tie for most tricks, the pot carries over</li>
+                        <li>BOORAY: Any player who played but took ZERO tricks must match the pot for the next round</li>
+                    </ul>
+
+                    <h3>Game Over</h3>
+                    <p>The game ends when a player runs out of chips (reaches 0 or below).</p>
+                </div>
+                <button class="btn-secondary" id="btn-back-rules">Back</button>
+            </div>
+        </div>
+
+        <!-- Feedback Screen -->
+        <div id="feedback-screen" class="screen">
+            <div class="rules-content">
+                <h2>Report a Bug</h2>
+                <div class="feedback-form">
+                    <label class="feedback-label">What happened?</label>
+                    <textarea id="feedback-description" placeholder="Describe the bug..." rows="4"></textarea>
+                    <label class="feedback-label">Steps to reproduce</label>
+                    <textarea id="feedback-steps" placeholder="1. Go to...\n2. Click on...\n3. See error..." rows="3"></textarea>
+                    <label class="feedback-label">Category</label>
+                    <select id="feedback-category">
+                        <option value="gameplay">Gameplay</option>
+                        <option value="online">Online Multiplayer</option>
+                        <option value="ui">UI / Display</option>
+                        <option value="scoring">Scoring</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <button class="btn-primary" id="btn-submit-feedback">Submit Bug Report</button>
+                    <button class="btn-secondary" id="btn-back-feedback">Back</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    <script src="game.js"></script>
+    <script src="online.js"></script>
+</body>
+</html>
