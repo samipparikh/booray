@@ -17,7 +17,8 @@ function cardDisplay(card) { const isRed = card.suit === '♥' || card.suit === 
 
 class Game {
     constructor() {
-        this.screens = { menu: document.getElementById('menu-screen'), game: document.getElementById('game-screen'), roundEnd: document.getElementById('round-end-screen'), gameOver: document.getElementById('game-over-screen'), rules: document.getElementById('rules-screen'), settings: document.getElementById('settings-screen'), feedback: document.getElementById('feedback-screen') };
+        this.screens = { menu: document.getElementById('menu-screen'), aiSetup: document.getElementById('ai-setup-screen'), game: document.getElementById('game-screen'), roundEnd: document.getElementById('round-end-screen'), gameOver: document.getElementById('game-over-screen'), rules: document.getElementById('rules-screen'), settings: document.getElementById('settings-screen'), feedback: document.getElementById('feedback-screen') };
+        this.isAIMode = false;
         this.playerCount = 4;
         this.players = [];
         this.currentRound = 1;
@@ -41,6 +42,11 @@ class Game {
         document.getElementById('btn-minus').addEventListener('click', () => this.changePlayerCount(-1));
         document.getElementById('btn-plus').addEventListener('click', () => this.changePlayerCount(1));
         document.getElementById('btn-start').addEventListener('click', () => this.startGame());
+        document.getElementById('btn-ai-game').addEventListener('click', () => this.showScreen('aiSetup'));
+        document.getElementById('btn-start-ai').addEventListener('click', () => this.startAIGame());
+        document.getElementById('btn-back-ai').addEventListener('click', () => this.showScreen('menu'));
+        document.getElementById('ai-minus').addEventListener('click', () => { const el = document.getElementById('ai-count'); el.textContent = Math.max(1, parseInt(el.textContent) - 1); });
+        document.getElementById('ai-plus').addEventListener('click', () => { const el = document.getElementById('ai-count'); el.textContent = Math.min(5, parseInt(el.textContent) + 1); });
         document.getElementById('btn-play-online').addEventListener('click', () => this.showOnlineMenu());
         document.getElementById('btn-settings').addEventListener('click', () => this.showScreen('settings'));
         document.getElementById('btn-back-settings').addEventListener('click', () => this.showScreen('menu'));
@@ -88,7 +94,17 @@ class Game {
 
     startGame() {
         const inputs = document.querySelectorAll('#player-names input');
-        this.players = Array.from(inputs).map((input, i) => ({ name: input.value.trim() || `Player ${i + 1}`, chips: settings.startingChips, tricks: 0, hand: [], folded: false }));
+        this.players = Array.from(inputs).map((input, i) => ({ name: input.value.trim() || `Player ${i + 1}`, chips: settings.startingChips, tricks: 0, hand: [], folded: false, isAI: false }));
+        this.isAIMode = false;
+        this.currentRound = 1; this.pot = 0; this.dealerIndex = 0;
+        this.startRound();
+    }
+
+    startAIGame() {
+        const name = document.getElementById('ai-player-name').value.trim() || 'You';
+        const aiCount = parseInt(document.getElementById('ai-count').textContent) || 3;
+        this.players = createBRPlayers(name, aiCount, settings.startingChips);
+        this.isAIMode = true;
         this.currentRound = 1; this.pot = 0; this.dealerIndex = 0;
         this.startRound();
     }
@@ -129,6 +145,26 @@ class Game {
         document.getElementById('phase-indicator').textContent = 'Declare: Play or Fold';
         this.updateScoreboard();
         const player = this.players[this.currentPlayerIndex];
+
+        if (player.isAI && this.isAIMode) {
+            const humanPlayer = this.players.find(p => !p.isAI);
+            if (humanPlayer) this.renderHand(humanPlayer);
+            document.getElementById('trick-area').innerHTML = '';
+            document.getElementById('action-buttons').innerHTML = '';
+            document.getElementById('status-message').textContent = `${player.name} 🤖 is deciding...`;
+            setTimeout(() => {
+                const decision = aiDeclareDecision(player, this.trumpSuit, this.pot, settings.ante);
+                if (decision === 'fold') {
+                    player.folded = true;
+                    document.getElementById('status-message').textContent = `${player.name} 🤖 folds`;
+                } else {
+                    document.getElementById('status-message').textContent = `${player.name} 🤖 plays`;
+                }
+                setTimeout(() => this.advanceDeclare(decision === 'fold'), 600);
+            }, 800 + Math.random() * 800);
+            return;
+        }
+
         this.renderHand(player);
         document.getElementById('trick-area').innerHTML = '';
         const actions = document.getElementById('action-buttons');
@@ -181,6 +217,21 @@ class Game {
     showDrawPhase() {
         if (this.drawPhaseIndex >= this.playingPlayers.length) { this.startPlayPhase(); return; }
         const player = this.playingPlayers[this.drawPhaseIndex];
+
+        if (player.isAI && this.isAIMode) {
+            document.getElementById('phase-indicator').textContent = 'Draw: Discard & Draw';
+            document.getElementById('status-message').textContent = `${player.name} 🤖 is drawing...`;
+            document.getElementById('action-buttons').innerHTML = '';
+            setTimeout(() => {
+                const discardIndices = aiDrawDecision(player, this.trumpSuit);
+                discardIndices.sort((a, b) => b - a).forEach(i => player.hand.splice(i, 1));
+                for (let i = 0; i < discardIndices.length && this.deck.length > 0; i++) player.hand.push(this.deck.pop());
+                document.getElementById('status-message').textContent = `${player.name} 🤖 drew ${discardIndices.length} cards`;
+                setTimeout(() => { this.drawPhaseIndex++; this.showDrawPhase(); }, 500);
+            }, 600 + Math.random() * 600);
+            return;
+        }
+
         document.getElementById('phase-indicator').textContent = 'Draw: Discard & Draw';
         this.renderHand(player, true);
         document.getElementById('trick-area').innerHTML = '';
@@ -247,6 +298,19 @@ class Game {
 
         const trickArea = document.getElementById('trick-area');
         trickArea.innerHTML = this.trickCards.map(tc => `<div class="trick-card-played"><span class="trick-player-name">${tc.playerName}</span>${cardDisplay(tc.card)}</div>`).join('');
+
+        if (player.isAI && this.isAIMode) {
+            const humanPlayer = this.players.find(p => !p.isAI);
+            if (humanPlayer && !humanPlayer.folded) this.renderPlayableHand(humanPlayer);
+            document.getElementById('action-buttons').innerHTML = '';
+            document.getElementById('status-message').textContent = `${player.name} 🤖 is playing...`;
+            setTimeout(() => {
+                const validCards = this.getValidCards(player);
+                const cardIdx = aiPlayCard(player, validCards, this.trickCards, this.ledSuit, this.trumpSuit);
+                this.playCard(player, cardIdx);
+            }, 700 + Math.random() * 800);
+            return;
+        }
 
         this.renderPlayableHand(player);
         document.getElementById('action-buttons').innerHTML = '';

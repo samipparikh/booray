@@ -25,10 +25,32 @@
                 </div>
                 <div id="player-names"></div>
                 <button class="btn-primary" id="btn-start">Local Game</button>
+                <button class="btn-primary" id="btn-ai-game">Play vs AI</button>
                 <button class="btn-primary btn-online" id="btn-play-online">Play Online</button>
                 <button class="btn-secondary" id="btn-settings">Settings</button>
                 <button class="btn-secondary" id="btn-rules">How to Play</button>
                 <button class="btn-secondary btn-feedback" id="btn-feedback">Report a Bug</button>
+            </div>
+        </div>
+
+        <!-- AI Setup Screen -->
+        <div id="ai-setup-screen" class="screen">
+            <div class="title-container">
+                <h1>BOO<span class="accent">RAY</span></h1>
+                <p class="subtitle">Play vs AI</p>
+            </div>
+            <div class="menu-options">
+                <input type="text" id="ai-player-name" placeholder="Your Name" maxlength="12">
+                <div class="player-select">
+                    <label>AI Opponents</label>
+                    <div class="player-count-selector">
+                        <button class="btn-count" id="ai-minus">−</button>
+                        <span id="ai-count">3</span>
+                        <button class="btn-count" id="ai-plus">+</button>
+                    </div>
+                </div>
+                <button class="btn-primary" id="btn-start-ai">Start Game</button>
+                <button class="btn-secondary" id="btn-back-ai">Back</button>
             </div>
         </div>
 
@@ -264,6 +286,7 @@
     <script>
         firebase.initializeApp(firebaseConfig);
     </script>
+    <script src="ai.js"></script>
     <script src="game.js"></script>
     <script src="online.js"></script>
 </body>
