@@ -172,6 +172,8 @@ class Game {
         document.getElementById('btn-play-hand').addEventListener('click', () => this.declarePlay());
         document.getElementById('btn-fold-hand').addEventListener('click', () => this.declareFold());
         document.getElementById('status-message').textContent = `${player.name}: Play or Fold?`;
+        if (this.isAIMode && !player.isAI) this.showTips('declare');
+        else this.hideTips();
     }
 
     declarePlay() {
@@ -240,6 +242,29 @@ class Game {
         document.getElementById('btn-draw-done').addEventListener('click', () => this.finishDraw(player));
         document.getElementById('status-message').textContent = `${player.name}: Select cards to discard, then click Done`;
         this.selectedForDiscard = new Set();
+        if (this.isAIMode && !player.isAI) this.showTips('draw');
+        else this.hideTips();
+    }
+
+    showTips(phase) {
+        const panel = document.getElementById('tips-panel');
+        if (!panel) return;
+        const humanPlayer = this.players.find(p => !p.isAI);
+        if (!humanPlayer || humanPlayer.folded) { this.hideTips(); return; }
+        const { riskScore, tips } = getBoorayTips(humanPlayer, phase, this);
+        let html = '';
+        if (riskScore !== null) {
+            const color = riskScore >= 65 ? '#e74c3c' : riskScore >= 40 ? '#f39c12' : '#27ae60';
+            html += `<div class="risk-meter"><span class="risk-label">Booray Risk:</span><span class="risk-score" style="color:${color}">${riskScore}%</span></div>`;
+        }
+        html += tips.map(t => `<div class="tip-item">${t}</div>`).join('');
+        panel.innerHTML = html;
+        panel.style.display = 'block';
+    }
+
+    hideTips() {
+        const panel = document.getElementById('tips-panel');
+        if (panel) panel.style.display = 'none';
     }
 
     renderHand(player, selectable = false) {
@@ -315,6 +340,8 @@ class Game {
         this.renderPlayableHand(player);
         document.getElementById('action-buttons').innerHTML = '';
         document.getElementById('status-message').textContent = `${player.name}'s turn to play`;
+        if (this.isAIMode && !player.isAI) this.showTips('play');
+        else this.hideTips();
     }
 
     renderPlayableHand(player) {

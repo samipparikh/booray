@@ -1,3 +1,81 @@
+// ============ PROBABILITY & TIPS ============
+
+function getBoorayTips(player, phase, game) {
+    const tips = [];
+    let riskScore = null;
+    const hand = player.hand;
+    const trumpSuit = game.trumpSuit;
+
+    if (phase === 'declare') {
+        const trumpCards = hand.filter(c => c.suit === trumpSuit);
+        const highCards = hand.filter(c => c.value >= 12);
+        const highTrumps = trumpCards.filter(c => c.value >= 11);
+
+        let strength = trumpCards.length * 2 + highCards.length + highTrumps.length * 1.5;
+        riskScore = Math.max(5, Math.min(95, Math.round(100 - strength * 12)));
+
+        if (trumpCards.length >= 2) {
+            tips.push(`Strong hand: ${trumpCards.length} trump cards. Playing is recommended.`);
+        } else if (trumpCards.length === 1 && highCards.length >= 2) {
+            tips.push(`Decent hand: 1 trump + ${highCards.length} high cards. Playing is reasonable.`);
+        } else if (trumpCards.length === 0 && highCards.length < 2) {
+            tips.push(`Weak hand: no trumps, few high cards. Folding saves your ante risk.`);
+        } else {
+            tips.push(`Borderline hand. Consider the pot size vs booray penalty risk.`);
+        }
+
+        const potRisk = game.pot;
+        tips.push(`Pot is $${potRisk}. Getting booray'd costs you $${potRisk} — fold if your hand can't win at least 1 trick.`);
+
+    } else if (phase === 'draw') {
+        const nonTrump = hand.filter(c => c.suit !== trumpSuit);
+        const lowCards = nonTrump.filter(c => c.value < 10);
+        const midCards = nonTrump.filter(c => c.value >= 10 && c.value < 13);
+
+        tips.push(`Discard low non-trump cards to improve your chances.`);
+        if (lowCards.length > 0) {
+            tips.push(`You have ${lowCards.length} low non-trump card(s) — good discard candidates.`);
+        }
+        if (hand.filter(c => c.suit === trumpSuit).length >= 3) {
+            tips.push(`Heavy in trumps — discard off-suit cards to maximize trick wins.`);
+        }
+        riskScore = null;
+
+    } else if (phase === 'play') {
+        const validCards = game.getValidCards(player);
+        if (validCards.length === 1) {
+            tips.push(`Only one legal play — no decision needed.`);
+        } else {
+            const playableCards = validCards.map(i => hand[i]);
+            const trumpPlays = playableCards.filter(c => c.suit === trumpSuit);
+
+            if (game.trickCards.length === 0) {
+                if (trumpPlays.length > 0) {
+                    tips.push(`Leading with a high trump forces others to beat it or lose the trick.`);
+                } else {
+                    tips.push(`Lead with your strongest suit to establish control.`);
+                }
+            } else {
+                const canWin = playableCards.some(c => {
+                    if (c.suit === trumpSuit && game.trickCards.every(tc => tc.card.suit !== trumpSuit || tc.card.value < c.value)) return true;
+                    if (c.suit === game.ledSuit && game.trickCards.every(tc => tc.card.suit !== trumpSuit && (tc.card.suit !== game.ledSuit || tc.card.value < c.value))) return true;
+                    return false;
+                });
+                if (canWin) {
+                    tips.push(`You can win this trick. Play your lowest winning card to save high cards.`);
+                } else {
+                    tips.push(`Unlikely to win this trick. Dump your weakest card.`);
+                }
+            }
+        }
+        riskScore = null;
+    }
+
+    return { riskScore, tips };
+}
+
+// ============ AI LOGIC ============
+
 const AI_NAMES_BR = ['Ace', 'Blaze', 'Shadow', 'Jinx', 'Wildcard'];
 const AI_STYLES_BR = ['aggressive', 'conservative', 'balanced', 'tricky', 'cautious'];
 
